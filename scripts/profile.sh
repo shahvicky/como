@@ -21,8 +21,8 @@ if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
 
-# start up server when user logins in 
-source ~/barc/scripts/login.sh
+# start up server when user logins in
+source ~/como/scripts/login.sh
 
 # Make sure crontab is updated
 #crontab -u odroid /home/odroid/barc/scripts/crondump

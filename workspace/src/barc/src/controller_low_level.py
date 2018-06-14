@@ -24,10 +24,11 @@ from barc.msg import ECU
 from numpy import pi
 import rospy
 
-motor_pwm = 90
-servo_pwm = 90
-str_ang_max = 35
-str_ang_min = -35
+motor_pwm = 90 # Motor neutral value (no movement)
+servo_pwm = 90 # Stearing neautral value (no movement)
+str_ang_max = 180 #35 # Max right turn (lower level codes saturates value) 
+str_ang_min = 0 #-35 # Max left turn 
+str_offset = 13.3 # steering offset to correct straight driving (servo_pwm is not always neutral) 
 
 def pwm_converter_callback(msg):
     global motor_pwm, servo_pwm, b0
@@ -37,8 +38,7 @@ def pwm_converter_callback(msg):
     # to pwm angle units (i.e. to send command signal to actuators)
 
     # convert desired steering angle to degrees, saturate based on input limits
-    str_ang     = max( min( 180.0/pi*msg.servo, str_ang_max), str_ang_min)
-    servo_pwm   = 92.0558 + 1.8194*str_ang  - 0.0104*str_ang**2
+    servo_pwm   = max( min( str_offset+ (180.0/pi*msg.servo), str_ang_max), str_ang_min)
 
     # compute motor command
     FxR         =  float(msg.motor) 
@@ -53,12 +53,15 @@ def pwm_converter_callback(msg):
 def neutralize():
     global motor_pwm
     motor_pwm = 90
-    servo_pwm = 90
+    servo_pwm = 90 + str_offset
     update_arduino()
+
+def convert2millisec(num): # converts the range [0, 180] to [1000, 2000]
+	return num*(1000/180) + 1000
 
 def update_arduino():
     global motor_pwm, servo_pwm, ecu_pub
-    ecu_cmd = ECU(motor_pwm, servo_pwm)
+    ecu_cmd = ECU(convert2millisec(motor_pwm), convert2millisec(servo_pwm))
     ecu_pub.publish(ecu_cmd)
 
 def arduino_interface():
@@ -68,8 +71,8 @@ def arduino_interface():
     init_node('arduino_interface')
     b0  = get_param("input_gain")
 
-    Subscriber('ecu', ECU, pwm_converter_callback, queue_size = 10)
-    ecu_pub = Publisher('ecu_pwm', ECU, queue_size = 10)
+    Subscriber('ecu', ECU, pwm_converter_callback, queue_size = 10) # queue_size set to 1 (instead of 10) in Vercantez/barc
+    ecu_pub = Publisher('ecu_pwm', ECU, queue_size = 10) # queue_size set to 1 (instead of 10) in Vercantez/barc
 
     # Set motor to neutral on shutdown
     on_shutdown(neutralize)

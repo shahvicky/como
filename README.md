@@ -1,3 +1,34 @@
+# UTD COMO package
+The package is based on the barc package. The documentation for barc is in the next section.
+Our fork has changes made at the University of Texas at Dallas.
+
+## Cloning the repository
+To clone our fork, open a new terminal, go to the directory where you want to clone the repository, and run the following:
+`git clone --recurse-submodules https://github.com/TSummersLab/como.git`
+We will use <path> to refer to the directory where the repository is cloned; i.e. if you are in the repository and you type `pwd` in terminal, you would see `<path>/como`
+
+## Building the repository
+* In a terminal window, navigate to the `scripts` folder in the repository:
+`cd <path>/como/scripts`
+* Run the following commands in your terminal window:
+```
+./install_apps.sh
+./install_ros_packs.sh
+./gps_setup.sh
+```
+This will install the required applications and dependencies for the package. It will also add the required launch file to the gps package.
+  * Note: When `gps_setup.sh` is executed again, it overwrites the data in the old `gps.launch` file, if it already existed.
+* To build the package run the following in your terminal window:
+```
+./rebuild_system.sh
+```
+If the Arduino nano was connected, `rebuild_system.sh` would also flash it.
+* If the Arduino nano was not connected, or if you want to flash the nano without building the package, run the following in your terminal window:
+```
+./flash_nano.sh
+```
+
+
 # Berkeley Autonomous Race Car (barc) Repo
 
 The Berkeley Autonomous Race Car is a development platform for autonomous driving to achieve complex maneuvers such as drifting, lane changes, and obstacle avoidance. A 1/10 scale RC car and an embedded Linux computer make up the hardware platform of the project. This project aims to be fully open-source. The data collection process is cloud-based and brings new dimensions to the Vehicle Dynamics and Control Theory teaching and research world.
@@ -26,7 +57,7 @@ All software to control the vehicle resides in the *Arduino* and *Workspace* fol
 
 ## Getting started
 1. Get the parts, [list](https://github.com/BARCproject/barc/blob/master/docs/BillofMaterials.md)
-2. Flash the odroid, [instructions](https://github.com/BARCproject/barc/blob/master/docs/FlashingEMMC.md) 
+2. Flash the odroid, [instructions](https://github.com/BARCproject/barc/blob/master/docs/FlashingEMMC.md)
 3. Assemble the car, [instructions](https://docs.google.com/document/d/1T8O4JhUlw09ALUGPSX7DlSO7Hc7vcKl_ahBeHncMguE/edit?usp=sharing)
 4. Charge the battery, [instructions](https://github.com/BARCproject/barc/blob/master/docs/ChargingBattery.md)
 5. Connect to the RC remotely, [instructions](https://github.com/BARCproject/barc/blob/master/docs/ConnectingToOdroid.md)

@@ -9,12 +9,12 @@ if ! hash ano 2>/dev/null; then
     sudo make install; cd; sudo rm -rf Arturo
 
     # link to arduino libraries
-    if [ ! -d ~/barc/arduino/.arduino_nano328_node ]; then
-        mkdir -p ~/barc/arduino/.arduino_nano328_node/src
+    if [ ! -d ~/como/arduino/.arduino_nano328_node ]; then
+        mkdir -p ~/como/arduino/.arduino_nano328_node/src
     fi
 
-    if [ ! -L ~/barc/arduino/.arduino_nano328_node/lib ]; then
-        ln -s ~/sketchbook/libraries ~/barc/arduino/.arduino_nano328_node/lib
+    if [ ! -L ~/como/arduino/.arduino_nano328_node/lib ]; then
+        ln -s ~/sketchbook/libraries ~/como/arduino/.arduino_nano328_node/lib
     fi
 
     # set avrdude configuration file
@@ -38,7 +38,7 @@ cd .vim
 git clone https://github.com/sickill/vim-monokai.git
 mv vim-monokai/* .
 rm -rf vim-monokai/
-cd 
+cd
 
 # install apps
 # * vim     - text editor
