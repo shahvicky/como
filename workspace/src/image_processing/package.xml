@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>como_image_processing</name>
+  <name>image_processing</name>
   <version>0.1.0</version>
   <description>Image Processing Files for Project COMO at UTD</description>
   <maintainer email="snsafaoui@gmail.com">Sleiman Safaoui</maintainer>
