@@ -1,0 +1,8 @@
+imgMode: 'gray' # 'color' or 'gray'
+
+camPath: "/dev/camera/logitech"
+
+resolution:
+  width: 640
+  height: 480
+  # TODO: add how to get the supported resolutions
