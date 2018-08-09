@@ -39,8 +39,10 @@ class RecordExperiment():
         self.camera_on           = rospy.get_param("/record_experiment/camera_on")
 
         # wait for ROS services
+        print('WAITING FOR SERVICES TO START ~~~~~~~~~~~~~~~~~~')
         rospy.wait_for_service('send_data')
         rospy.wait_for_service('register_video')
+        print('DONE. SERVICES ARE READY ~~~~~~~~~~~~~~~~~~~~~~~')
 
         # resigter proxy service
         self.send_data = rospy.ServiceProxy('send_data', DataForward, persistent=True)
@@ -61,7 +63,7 @@ class RecordExperiment():
             os.makedirs(image_dir)
          
         # start rosrecord for following topics
-        self.topics = ['/imu/data', '/encoder', '/ecu', '/ecu_pwm', '/image_transformed/compressed/', '/fix', '/vel_est']
+        self.topics = ['/cam/forward_img','/cam/line_img','/cam/orientation_img', '/line_data', '/qr/distance', '/imu/data', '/encoder', '/ecu', '/ecu_pwm', '/image_transformed/compressed/', '/fix', '/vel_est']
         self.rosbag_file_path = os.path.abspath(rosbag_dir + '/' + self.experiment_name + '.bag')
         self.start_record_data()
         
@@ -119,7 +121,7 @@ class RecordExperiment():
 
         # extract images
         idx = 0
-        for topic, msg, t in self.bag.read_messages( topics='/image_transformed/compressed/' ):
+        for topic, msg, t in self.bag.read_messages( topics='/cam/orientation_img' ):
             nparr = np.fromstring(msg.data, np.uint8)
             img_data = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             cv2.imwrite( experiment_img_dir + '/%5d.jpg' % idx, img_data)
@@ -147,7 +149,7 @@ class RecordExperiment():
 
             chunk_dict[topic] += 1
 
-            if topic =='/image_transformed/compressed/' :
+            if topic =='/cam/orientation_img' :
                 chunk_msg[topic].append( img_idx )
                 chunk_ts[topic].append( ts )
                 img_idx += 1
@@ -228,6 +230,9 @@ class RecordExperiment():
             # Camera ID
             if topic =='/image_transformed/compressed/':
                 image_id = msg  
+
+            if topic =='/cam/orientation_img':
+                image_id = msg
 
             # GPS
             if topic == '/fix':

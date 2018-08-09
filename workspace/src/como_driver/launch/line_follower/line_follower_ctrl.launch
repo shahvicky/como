@@ -1,0 +1,59 @@
+<!-- Sleiman Safaoui
+    July 30, 2018
+  -->
+
+<!-- Launch file to start the line follower and its corresponding higher-level controller -->
+
+<launch>
+
+    <!-- SYSTEM MODEL -->
+    <!-- vehicle parameters -->
+    <param name="L_a" type="double" value="0.125" />
+    <param name="L_b" type="double" value="0.125" />
+    <!-- control parameters -->
+    <param name="input_gain" type="double" value="0.3" />
+    
+    <!-- ARDUINO -->
+    <node pkg="rosserial_python" type="serial_node.py" name="arduino_node" >
+        <param name="port" value="/dev/controller/nano" />
+    </node>
+
+	<!-- LOW-LEVEL CONTROLLER -->
+	<node pkg="barc" type="controller_low_level.py" name="low_level_controller" output="screen" />
+    
+    
+    
+    
+    <!-- intermediate level controller-->
+    
+
+	<!-- cam_bridge -->
+	<node pkg="como_image_processing" type="cam_bridge.py" name="cam_bridge" output="screen" respawn="true">
+		<rosparam command="load" file="$(find como_image_processing)/config/cam_bridge_params.yml"/>
+	</node>
+
+	<!-- image proprocessor -->
+	<node pkg="como_image_processing" type="img_preprocessing.py" name="img_preprocessing" output="screen" respawn="true">
+		<rosparam command="load" file="$(find como_image_processing)/config/img_preprocessing_params.yml"/>
+		<param name="path_to_corners" value="$(find como_image_processing)/config"/>
+	</node>
+
+	<!-- line processor -->
+	<node pkg="como_image_processing" type="process_line.py" name="process_line" output="screen" respawn="true">
+		<rosparam command="load" file="$(find como_image_processing)/config/process_line_params.yml"/>
+		<param name="path_to_corners" value="$(find como_image_processing)/config"/>
+	</node>
+
+	<!-- INTERMEDIATE-LEVEL CONTROLLER (line_follower) -->
+	<node pkg="line_follower" type="line_follower.py" name="line_follower" output="screen"/>
+	
+	
+	
+    <!-- higher level controller-->
+    
+	<!-- HIGHER-LEVEL CONTROLLER (line_follower_ctrl) -->
+	<node pkg="como_driver" type="line_follower_ctrl.py" name="line_follower_ctrl" output="screen"/>
+	
+	
+        
+</launch>
