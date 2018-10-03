@@ -721,7 +721,7 @@ def main():
     # load parameters from img_preprocessing node
     num_horizontal_checkerboard_corners = rospy.get_param("/img_preprocessing" + "/CheckerboardParams" + "/num_internal_checkerboard_corners_horizontally")
     num_vertical_checkerboard_corners = rospy.get_param("/img_preprocessing" + "/CheckerboardParams" + "/num_internal_checkerboard_corners_vertically")
-    line_img_indicator = rospy.get_param('/cam_bridge' + "/imgMode")
+    line_img_indicator = rospy.get_param('/elp_cam_bridge' + "/imgMode")
 
 
     # create objects

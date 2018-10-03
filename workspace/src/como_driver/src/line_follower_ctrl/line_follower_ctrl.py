@@ -49,8 +49,6 @@ class ECUPub:
 		self.ecu_pub = rospy.Publisher('/ecu', ECU, queue_size = 1)
 		
 	def set_ecu(self, motor, servo):
-		print(motor)
-		print(servo)
 		self.ecu = ECU(float(motor), float(servo)*pi/180.0)
 	
 	def publish_ecu(self):
@@ -59,18 +57,13 @@ class ECUPub:
 def main():
 	rospy.init_node("line_follower_ctrl") # initialize ROS node
 	rate = rospy.Rate(30)
-	print('starting ctrl ~~~~~~~~~~~~~~~~~~~~~~~~~~')
 	str_sub = StrSub()
 	ecu_pub = ECUPub()
 	
 	motor_cmd = 7.3
-	print('going into while loop ~~~~~~~~~~~~~~~~~~~~~~~~~~')
 	while not rospy.is_shutdown():
-		print('finding str command ~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 		str_cmd = str_sub.get_str() # get steering command
-		print('updating str command ~~~~~~~~~~~~~~~~~~~~~~~~~~')
 		ecu_pub.set_ecu(motor_cmd, str_cmd) # update publisher with new command
-		print('publishing command ~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 		ecu_pub.publish_ecu() # publish new command
 		
 		rate.sleep()

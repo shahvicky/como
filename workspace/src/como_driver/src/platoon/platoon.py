@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-we subscribe to the steering angle topic /ecu/line_follow/str. The follower also subscribes to /april_tag/distance
+We subscribe to the steering angle topic /ecu/line_follow/str. The follower also subscribes to /april_tag/distance
 and internally determines the motor command. It then publishes the ECU command with the appropriate servo values 
 
 This script also serves as a sample script for what other COMO higher-level control scripts can look like.
@@ -30,7 +30,6 @@ class PID_ctrl:
 	'''
 	Generic discrete time PID controller with integrator anti-windup and control output saturation
 	'''
-
 	def __init__(self, Kp = 1., Ki = 0., Kd = 0., i_max = 0., i_min = 0., ctrl_max = 1., ctrl_min = 0.):
 		self.Kp = Kp
 		self.Ki = Ki
@@ -47,36 +46,27 @@ class PID_ctrl:
 
 	def apply_pid(self, des_value, current_value, timestamp):
 		self.e_curr = des_value - current_value
-		#print('error', self.e_curr)
-		#print('kp', self.Kp)
 		self.t_curr = timestamp
 		dt = self.t_curr - self.t_prev
-		#print('dt', dt)
 
         # Proportional control
 		p_ctrl = self.Kp * self.e_curr
-		#print('p_ctrl', p_ctrl)
 
         # Integral control with anti-windup
 		i_ctrl = self.e_sum + self.Ki*dt/2.0*(self.e_curr+self.e_prev)
 		i_ctrl = min(i_ctrl, self.i_max)
 		i_ctrl = max(i_ctrl, self.i_min)
-		#print('i_ctrl', i_ctrl)
 
         # Derivative control
 		d_ctrl = self.Kd*(self.e_curr-self.e_prev)/dt
-		#print('d_ctrl', d_ctrl)
 
         # Control signal calculation
 		ctrl = p_ctrl #+ i_ctrl + d_ctrl
 		
-		#print('ctrl', ctrl)
         # Control saturation
-		#print('ctrl_max', self.ctrl_max)
-		#print('ctrl_min', self.ctrl_min)
 		ctrl = min(ctrl, self.ctrl_max)
 		#ctrl = max(ctrl, self.ctrl_min)
-		#print('ctrl', ctrl)
+
         # update previous values with current values
 		self.e_sum = i_ctrl
 		self.e_prev = self.e_curr
@@ -84,6 +74,7 @@ class PID_ctrl:
 
 		return ctrl
 
+#Subscriber for the steering angle published by the line follower node. 
 class StrSub:
 	'''
 	Subscribes to the steering angle topic
@@ -97,7 +88,8 @@ class StrSub:
 		
 	def get_str(self):
 		return self.str_cmd
-		
+
+#Subscriber for the April tag distance
 class AprilTagDistSub:
 	'''
 	Subscribes to the april_tag/distance topic
@@ -159,10 +151,13 @@ class Platoon:
 		
 		elif (self.platoon_role == 'follower'):
 			if (self.flag != 1):
+				self.motor = self.dist_ctrl
+				'''
 				if (self.dist_calc < self.dist_min): # Minimum value may need to be changed depending on testing/minimum distance tag & line is detectable
 					self.motor = 0.0
 				else:
 					self.motor = self.dist_ctrl
+				'''
 			else:
 				self.flag = 0
 		else:

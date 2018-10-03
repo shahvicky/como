@@ -136,9 +136,7 @@ DetectionBase = collections.namedtuple(
 class Detection(DetectionBase):
     '''Pythonic wrapper for apriltag_detection which derives from named
 tuple class.
-
     '''
-
     _print_fields = [
         'Family', 'ID', 'Hamming error', 'Goodness',
         'Decision margin', 'Homography', 'Center', 'Corners'
@@ -175,16 +173,10 @@ tuple class.
 
 
 class DetectorOptions(object):
-
     '''Convience wrapper for object to pass into Detector
 initializer. You can also pass in the output of an
 argparse.ArgumentParser on which you have called add_arguments.
-
     '''
-
-# pylint: disable=R0902
-# pylint: disable=R0913
-
     def __init__(self,
                  families='tag36h11',
                  border=1,
@@ -211,13 +203,10 @@ argparse.ArgumentParser on which you have called add_arguments.
 
 
 def add_arguments(parser):
-
     '''Add arguments to the given argparse.ArgumentParser object to enable
 passing in the resulting parsed arguments into the initializer for
 Detector.
-
     '''
-
     defaults = DetectorOptions()
 
     show_default = ' (default %(default)s)'
@@ -261,15 +250,12 @@ Detector.
 
 
 class Detector(object):
-
     '''Pythonic wrapper for apriltag_detector. Initialize by passing in
 the output of an argparse.ArgumentParser on which you have called
 add_arguments; or an instance of the DetectorOptions class.  You can
 also optionally pass in a list of paths to search for the C dynamic
 library used by ctypes.
-
     '''
-
     def __init__(self, options=None, searchpath=[]):
 
         if options is None:
@@ -546,14 +532,12 @@ def _draw_pose(overlay, camera_params, tag_size, pose, z_sign=1):
 
     for i, j in edges:
         cv2.line(overlay, ipoints[i], ipoints[j], (0, 255, 0), 1, 16)
-
 ######################################################################
 
-
-#The ImgFetcher class is responsible for subscribing to the appropriate node containing the forward image.
+#The ImgFetcher class is responsible for subscribing to the appropriate node containing the raw image.
 #Dependent on the image indicator specified in the cam_bridge config file, the fetcher will know
 #to grab a gray or color image. The class also contains functions to obtain internal data such as
-#the forward image and image indicator.
+#the raw image and image indicator.
 class ImgFetcher:
 	def __init__(self):
 		self.bridge = CvBridge()
@@ -601,7 +585,7 @@ class ImgFetcher:
 		return self.img
 
 #The DistPublisher class is responsible for calculating and publishing the distance between
-#the QR code and the camera to the appropriate node.
+#the April tag and the camera to the appropriate node.
 class DistPublisher:
 	def __init__(self):
 		self.tag_distance = 0.0
@@ -618,7 +602,7 @@ class DistPublisher:
 	def publish_tag_distance(self, distance):
 		self.tag_distance_pub.publish(distance)
 
-#The ImgPublisher class is responsible for publishing the warped warped QR code.
+#The ImgPublisher class is responsible for publishing the warped April tag code.
 class  ImgPublisher:
 	def __init__(self):
 		self.bridge = CvBridge()
@@ -633,6 +617,7 @@ class  ImgPublisher:
 		else:
 			self.tag_img = img
 			self.tag_img_indicator = indicator
+
 	def publish_tag_img(self):
 		if (self.tag_img_indicator == ''):
 			print("No image to publish")
@@ -656,16 +641,12 @@ def main():
 	rate = rospy.Rate(30)
 
 	nodename = "/april_tag_detector"
-
 	side_length = rospy.get_param(nodename + "/side_length")
-	img_mode = rospy.get_param('/cam_bridge/imgMode')
+	img_mode = rospy.get_param("/elp_cam_bridge/imgMode")
 	focal_length = rospy.get_param(nodename + "/focal_length")
 	tag_id = rospy.get_param(nodename + "/tag_id")
 	
 	from argparse import ArgumentParser
-
-    # for some reason pylint complains about members being undefined :(
-    # pylint: disable=E1101
 
 	parser = ArgumentParser(description='test apriltag Python bindings')
 	parser.add_argument('filenames', metavar='IMAGE', nargs='+', help='files to scan')
@@ -686,6 +667,7 @@ def main():
 		return
 	try:
 		while not rospy.is_shutdown():
+			#Retrieve image and image indicator
 			img = fetcher.get_img()
 			img_indicator = fetcher.get_img_indicator()
 			
@@ -694,13 +676,13 @@ def main():
 			else:
 				if (img_mode == 'color'):
 					img = cv2.cvtColor(img, cv2.COLORBGR2GRAY)
-
+				
+				#An image is passed into a detection function, and the detected tags are returned
 				detections, dimg = detector.detect(img, return_image=True)
 				
 				if (len(detections) > 0):
 					for detection in detections:
-						print("tag_id:",detection[1])
-						if (detection[1] == tag_id):
+						if (detection[1] == tag_id): #Checking if the tag is the correct id
 							dst = np.array([[0.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0]], dtype = "float32")
 							L = [int(detection[7][0][0]), int(detection[7][0][1])]
 							M = [int(detection[7][1][0]), int(detection[7][1][1])]
@@ -716,15 +698,15 @@ def main():
 							tag_dist = distPublisher.calculate_distance(L[1], M[1], N[1], O[1], side_length, focal_length)
 							distPublisher.publish_tag_distance(tag_dist)
 				else:
-					distPublisher.publish_tag_distance(-1.0)
+					distPublisher.publish_tag_distance(-1.0) #if no tag or the incorrect tag is detected, then -1.0 is published.
 			rate.sleep()
 	except KeyboardInterrupt:
 		print ("Shutting down")
-		rospy.logfatal("Keyboard Interrupt. Shutting down qr_detector node")
+		rospy.logfatal("Keyboard Interrupt. Shutting down april_tag_detector node")
 
 if __name__ == '__main__':
 	try:
 		main()
 	except rospy.ROSInterruptException:
-		rospy.logfatal("ROS Interrupt. Shutting down qr_detector node")
+		rospy.logfatal("ROS Interrupt. Shutting down april_tag_detector node")
 		pass

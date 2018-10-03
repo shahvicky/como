@@ -254,7 +254,6 @@ def main():
 				
 				canny_img = cv2.Canny(img_frwd, 100, 200)
 				cont_img, contours, hierarchy = cv2.findContours(canny_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-				print ('num contours: ', len(contours))
 
 				mark = 0
 

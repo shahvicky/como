@@ -527,8 +527,8 @@ def main():
     #path = rospy.get_param(nodename + "/path_to_corners")
     #rospy.logfatal('path %s', path)
     #path = "/home/odroid/catkin_ws/src/como_image_processing/config"
-    path = "/home/odroid/como/workspace/src/como_image_processing/config"
-    img_mode = rospy.get_param('/cam_bridge' + "/imgMode")
+    path = "/home/odroid/como/workspace/src/image_processing/config"
+    img_mode = rospy.get_param('/elp_cam_bridge' + "/imgMode")
 
     # create objects
     fetcher = imgFetcher()

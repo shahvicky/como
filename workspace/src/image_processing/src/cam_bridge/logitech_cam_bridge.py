@@ -51,10 +51,10 @@ class ImagePublisher:
 
 
 def main():
-    rospy.init_node("cam_bridge", anonymous=True) #initialize ros node
+    rospy.init_node("logitech_cam_bridge", anonymous=True) #initialize ros node
     rate = rospy.Rate(30) #set publishing rate
     
-    nodename = '/cam_bridge'
+    nodename = '/logitech_cam_bridge'
     
     image_mode = rospy.get_param(nodename + '/imgMode')
     cam_path = rospy.get_param(nodename + '/camPath')

@@ -28,8 +28,8 @@
     
 
 	<!-- cam_bridge -->
-	<node pkg="image_processing" type="cam_bridge.py" name="cam_bridge" output="screen" respawn="true">
-		<rosparam command="load" file="$(find image_processing)/config/cam_bridge_params.yml"/>
+	<node pkg="image_processing" type="elp_cam_bridge.py" name="elp_cam_bridge" output="screen" respawn="true">
+		<rosparam command="load" file="$(find image_processing)/config/elp_cam_bridge_params.yml"/>
 	</node>
 
 	<!-- image proprocessor -->
@@ -44,16 +44,17 @@
 		<param name="path_to_corners" value="$(find image_processing)/config"/>
 	</node>
 
+	<!-- april tag detector -->
+	<node pkg="image_processing" type = "april_tag_detector.py" name = "april_tag_detector" output = "screen" respawn = "true">
+		<rosparam command = "load" file = "$(find image_processing)/config/april_tag_detector_params.yml"/>
+	</node>
+	
 	<!-- INTERMEDIATE-LEVEL CONTROLLER (line_follower) -->
 	<node pkg="controllers" type="line_follower.py" name="line_follower" output="screen"/>
 	
-	
-	
     <!-- higher level controller-->
     
-	<!-- HIGHER-LEVEL CONTROLLER (line_follower_ctrl) -->
-	<node pkg="como_driver" type="line_follower_ctrl.py" name="line_follower_ctrl" output="screen"/>
-	
-	
-        
+	<node pkg="como_driver" type="platoon.py" name="platoon" output="screen" respawn = "true">
+		<rosparam command = "load" file = "$(find como_driver)/config/platoon_params.yml"/>
+	</node>
 </launch>
