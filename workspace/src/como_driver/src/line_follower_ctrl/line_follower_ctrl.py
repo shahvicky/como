@@ -34,7 +34,6 @@ class StrSub:
 		self.str_sub = rospy.Subscriber("/ecu/line_follower/servo", Float64, self.callback, queue_size =1)
 		
 	def callback(self, data):
-		print('data: ', data.data)
 		self.str_cmd = data.data
 		
 	def get_str(self):
@@ -60,7 +59,7 @@ def main():
 	str_sub = StrSub()
 	ecu_pub = ECUPub()
 	
-	motor_cmd = 7.3
+	motor_cmd = 4.5
 	while not rospy.is_shutdown():
 		str_cmd = str_sub.get_str() # get steering command
 		ecu_pub.set_ecu(motor_cmd, str_cmd) # update publisher with new command
