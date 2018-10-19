@@ -586,13 +586,9 @@ def main():
             # get a new image
             img_raw = fetcher.get_img_raw()
             img_raw_indicator = fetcher.get_img_raw_indicator()
-            #print('........img_raw_indicator: ', img_raw_indicator)
-            #print(len('color'))
+ 
             #if img_raw_indicator != -1:
-            #    print(len(img_raw_indicator))
-            #print('comparison between indicator and color and gray', (img_raw_indicator != 'color') & (img_raw_indicator != 'gray'))
             if ((img_raw_indicator == -1) | (img_raw == [])): # there is no image
-                #print('No image, skipping rest of cycle')
                 rospy.logwarn("No image yet.")
             else: # image exists
                 # send image to divider

@@ -15,9 +15,9 @@ June 21, 2018
 '''
 from __future__ import print_function
 import numpy as np
-import os #
+import os
 import copy
-# import time
+from collections import deque
 
 import cv2
 
@@ -138,6 +138,7 @@ class lineProcessor:
         self.car_to_img_center_meters = [] # lateral and vertical distance between the car's body frame origin and the center of the line (in meters)
         self.heading_vector = [] # heading vector of the line
         self.corners_from_file = [] # corners loaded from corners.txt
+        self.prev_line_center = [0, 0] #median of the previous line distances
         # imported parameters
         self.param_update = False # if below parameters have not been updated, process_line_img cannot execute
         self.threshold = 0 # threshold to binarize image
@@ -153,22 +154,18 @@ class lineProcessor:
     def set_param(self, threshold, width_line, width_gain, arrow_scale):
         if ((threshold < 0) | (threshold > 255)):
             rospy.logfatal('Invalid threshold')
-            #print('Invalid threshold')
             self.param_update = False
             return
         if (width_line < 0):
             rospy.logfatal('Invalid line width')
-            #print('Invalid line width')
             self.param_update = False
             return
         if (width_gain < 0):
             rospy.logfatal('Invalid width gain')
-            #print('Invalid width gain')
             self.param_update = False
             return
         if (arrow_scale < 0):
             rospy.logfatal('Invalid arrow scale')
-            #print('Invalid arrow scale')
             self.param_update = False
             return
         self.threshold = threshold
@@ -242,7 +239,8 @@ class lineProcessor:
         '''
         # check the characteristics of each contour and increase its votes if they match the chatacteristics of the line
         votes = np.zeros([len(contours)])
-        center_to_corner = ((0.0 - (cols-1))**2. + (0.0 - (rows-1))**2. )**0.5 # diagonal of image
+        corner_to_corner = np.linalg.norm(np.array([rows - 1, cols - 1])) # diagonal of image
+
         i = 0
         for cnt in contours:
             epsilon = 0.05*cv2.arcLength(cnt,True)
@@ -256,7 +254,8 @@ class lineProcessor:
             else:
                 cx = int(moments['m10']/moments['m00'])# x value for centroid of contour
                 cy = int(moments['m01']/moments['m00'])# y value for centroid of contour
-            dist_to_img_center = ((cx - (cols-1))**2. + (cy - (rows-1))**2. )**0.5 # distance between contour center and the image center
+            contour_to_prev_line = np.linalg.norm(np.array([cx,cy]) - np.array(self.prev_line_center))
+
             if (area > min_area): # check if area is greater than min value
                 votes[i] += 2.
             if (perimeter > min_perimeter): # check if perimeter is greater than min value
@@ -268,7 +267,8 @@ class lineProcessor:
                     votes[i] += 1.
             if len(approx) > 3: # check how many points the contour has (a line is a square --> at least 4 points)
                 votes[i] += 2.
-            votes[i] += 2.*(1 - dist_to_img_center/center_to_corner) # the closer the object is to the center, the heigher its vote
+            votes[i] += 20.*(1 - contour_to_prev_line/corner_to_corner) # the closer the object is to the previous line, the higher its vote
+
             i = int(i+1)
         return votes
     def find_idx_of_line_contour(self, num_contours, votes):
@@ -328,7 +328,6 @@ class lineProcessor:
         '''
         if self.param_update == False:
             rospy.logwarn('Please update parameters first')
-            #print('Please update parameters first')
             return False
         threshold = self.threshold
         width_line = self.width_line
@@ -356,7 +355,6 @@ class lineProcessor:
         img_bw = self.binarize_img(img_gray, threshold)
         if img_bw == []: # if the black and white image is empty, stop
             rospy.logwarn('No black and white image')
-            #print('No black and white image')
             return False
         self.img_bw = img_bw.copy()
 
@@ -364,7 +362,6 @@ class lineProcessor:
         img_edges = self.find_edges(img_bw)
         if img_edges == []: # if the black and white image is empty, stop
             rospy.logwarn('No edges detected')
-            #print('No edges')
             return False
         self.img_edges = img_edges.copy()
 
@@ -385,7 +382,6 @@ class lineProcessor:
         contours = self.find_contours(img_bw)
         if contours == []:
             rospy.logwarn('No contours detected')
-            #print('Invalid contours')
             return False
 
         img_arrow_gray = self.img_gray.copy() # copy the gray image to draw line on it
@@ -406,15 +402,16 @@ class lineProcessor:
         self.center = [center_x, center_y]
         if angle == []: # could not find angle
             rospy.logwarn('Could not find angle of line')
-            #print('Could not find angle of the line')
             return False
         [ang_rad, ang_deg] = angle
         self.angle = [ang_rad, ang_deg]
         [eigen_vector_x, eigen_vector_y] = eigen_vector
         self.heading_vector = [eigen_vector_x, eigen_vector_y]
 
+		#updating prev_line_center
+        self.prev_line_center = [int(center_x), int(center_y)] 
+        
         # center of blob in top-down-view image
-
         pt1 = (int(center_x), int(center_y)) #start point (center)
         pt2 = (int(center_x+eigen_vector_x*scale), int(center_y+eigen_vector_y*scale)) #end point (center -
         try:
@@ -737,17 +734,14 @@ def main():
     while line_processor.param_update == False:
         line_processor.set_param(threshold, width_line, width_gain, arrow_scale)
         rospy.logfatal('Parameters were not set correctly')
-        #print('Parameters were not set correctly. Shutting down')
         #return
     set_checkerboard_data_check = line_processor.set_checkerboard_data(num_horizontal_checkerboard_corners, num_vertical_checkerboard_corners, square_size, car_body_frame_to_board)
     while set_checkerboard_data_check == False:
         set_checkerboard_data_check = line_processor.set_checkerboard_data(num_horizontal_checkerboard_corners, num_vertical_checkerboard_corners, square_size, car_body_frame_to_board)
         rospy.logfatal('Checkerboard data incorrect. Shutting down')
-        #print('Checkerboard data incorrect. Shutting down')
         #return
     while line_processor.corners_from_file == []: # get the outer corners as found by the image_preprocessing node
         rospy.logwarn('Trying to find the corners of the checkerboard')
-        #print('Trying to get the corners of the checkerboard')
         line_processor.load_cornersTXT_data(path)
     try:
         while not rospy.is_shutdown():
@@ -758,8 +752,7 @@ def main():
             # map data to car body frame
             # publish line center and orientation
             #####END#####
-            #print('sq: ', square_size)
-            #print('line_processor.sq: ', line_processor.square_size)
+
             # get an image of the line
             line_img = line_fetcher.get_img()
             line_img_indicator = line_fetcher.get_img_indicator()
@@ -782,16 +775,13 @@ def main():
                         arrowed_img_publisher.publish_img()
 
                 else:
-                    #print('Line data not found')
                     rospy.logerr('Line data not found')
             else:
-                #print('Image not imported')
                 rospy.logerr('Image not imported')
 
             rate.sleep()
 
     except KeyboardInterrupt:
-        #print("Shutting down")
         rospy.logfatal("Keyboard Interrupt. Shutting down process_line node")
     #cv2.destroyAllWindows()
 
