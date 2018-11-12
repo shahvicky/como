@@ -1,20 +1,17 @@
 #!/usr/bin/env python
 '''
-we subscribe to the steering angle topic /ecu/line_follow/str and publish to /ecu a steering and a velocity command.
+we subscribe to the steering angle topic /ecu/line_follow/str and the lidar collision flag topic /lidar/collision_flag and publish to /ecu a steering and a velocity command.
 
 This script also serves as a sample script for what other COMO higher-level control scripts can look like.
 
 Author:
-Sleiman Safaoui
+Kevin Daniel
 
 Github:
-The-SS
-
-Email:
-snsafaoui@gmail.com
+rev-the-kev
 
 Date:
-July 30, 2018
+Oct 11, 2018
 '''
 
 import roslib
