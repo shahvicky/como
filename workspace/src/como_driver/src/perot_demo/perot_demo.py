@@ -72,7 +72,7 @@ def main():
 	ecu_pub = ECUPub()
 	flag_sub = FlagSub()
 
-	motor_cmd = 5.8  #motor_cmd = 4.5
+	motor_cmd = 9.0  #motor_cmd = 4.5
 	while not rospy.is_shutdown():
 		str_cmd = str_sub.get_str() # get steering command
 		
