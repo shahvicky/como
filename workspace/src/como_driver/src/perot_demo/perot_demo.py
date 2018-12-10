@@ -80,7 +80,7 @@ def main():
 		collision_flag = flag_sub.get_flag()
 
 		if collision_flag:
-			ecu_pub.set_ecu(0.0, str_cmd) # update publisher with new command
+			ecu_pub.set_ecu(0.5, str_cmd) # update publisher with new command
 		else:
 			ecu_pub.set_ecu(motor_cmd, str_cmd) # update publisher with new command
 
